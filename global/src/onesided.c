@@ -604,6 +604,8 @@ void ngai_put_common(Integer g_a,
   Integer use_blocks;
   Integer n_rstrctd;
   Integer *rank_rstrctd;
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
 #if defined(__crayx1) || defined(DISABLE_NBOPT)
 #else
   Integer ga_nbhandle;
@@ -633,13 +635,13 @@ void ngai_put_common(Integer g_a,
 
     /* Locate the processors containing some portion of the patch
        specified by lo and hi and return the results in _ga_map,
-       GA_proclist, and np. GA_proclist contains a list of processors
+       GA_proclist_replacement, and np. GA_proclist_replacement contains a list of processors
        containing some portion of the patch, _ga_map contains
        the lower and upper indices of the portion of the patch held
        by a given processor, and np contains the total number of
        processors that contain some portion of the patch.
      */
-    if(!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist, &np ))
+    if(!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist_replacement, &np ))
       ga_RegionError(pnga_ndim(g_a), lo, hi, g_a);
 
 #ifndef NO_GA_STATS
@@ -671,7 +673,7 @@ void ngai_put_common(Integer g_a,
         char *pbuf, *prem;
 
         p = (Integer)ProcListPerm[idx];
-        proc = (int)GA_proclist[p];
+        proc = (int)GA_proclist_replacement[p];
         if (p_handle >= 0) {
           proc = PGRP_LIST[p_handle].inv_map_proc_list[proc];
         }
@@ -690,7 +692,7 @@ void ngai_put_common(Integer g_a,
              return the result in plo and phi. Also get actual processor
              index corresponding to p and store the result in proc. */
           gam_GetRangeFromMap(p, ndim, &plo, &phi);
-          proc = (int)GA_proclist[p];
+          proc = (int)GA_proclist_replacement[p];
 
           if (n_rstrctd == 0) {
             gam_Location(proc,handle, plo, &prem, ldrem);
@@ -709,7 +711,7 @@ void ngai_put_common(Integer g_a,
           gam_setstride(ndim, size, ld, ldrem, stride_rem, stride_loc);
 
           if (p_handle >= 0) {
-            proc = (int)GA_proclist[p];
+            proc = (int)GA_proclist_replacement[p];
             /* BJP */
             proc = PGRP_LIST[p_handle].inv_map_proc_list[proc];
           }
@@ -1098,6 +1100,7 @@ void ngai_put_common(Integer g_a,
 #ifdef PROFILE_OLD
   ga_profile_stop();
 #endif
+free(GA_proclist_replacement);
 }
 
 
@@ -1347,6 +1350,8 @@ void ngai_get_common(Integer g_a,
   Integer use_blocks;
   Integer n_rstrctd;
   Integer *rank_rstrctd;
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
 #if defined(__crayx1) || defined(DISABLE_NBOPT)
 #else
   Integer ga_nbhandle;
@@ -1376,13 +1381,13 @@ void ngai_get_common(Integer g_a,
 
     /* Locate the processors containing some portion of the patch
        specified by lo and hi and return the results in _ga_map,
-       GA_proclist, and np. GA_proclist contains a list of processors
+       GA_proclist_replacement, and np. GA_proclist_replacement contains a list of processors
        containing some portion of the patch, _ga_map contains
        the lower and upper indices of the portion of the patch held
        by a given processor, and np contains the total number of
        processors that contain some portion of the patch.
      */
-    if(!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist, &np ))
+    if(!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist_replacement, &np ))
       ga_RegionError(pnga_ndim(g_a), lo, hi, g_a);
 
     /* get total size of patch */
@@ -1415,7 +1420,7 @@ void ngai_get_common(Integer g_a,
         char *pbuf, *prem;
 
         p = (Integer)ProcListPerm[idx];
-        proc = (int)GA_proclist[p];
+        proc = (int)GA_proclist_replacement[p];
         if (p_handle >= 0) {
           proc = PGRP_LIST[p_handle].inv_map_proc_list[proc];
         }
@@ -1434,7 +1439,7 @@ void ngai_get_common(Integer g_a,
              return the result in plo and phi. Also get actual processor
              index corresponding to p and store the result in proc. */
           gam_GetRangeFromMap(p, ndim, &plo, &phi);
-          proc = (int)GA_proclist[p];
+          proc = (int)GA_proclist_replacement[p];
 
           /* get pointer prem to location indexed by plo. Also get
              leading physical dimensions in memory in ldrem */
@@ -1464,7 +1469,7 @@ void ngai_get_common(Integer g_a,
           gam_setstride(ndim, size, ld, ldrem, stride_rem, stride_loc);
 
           if (p_handle >= 0) {
-            proc = (int)GA_proclist[p];
+            proc = (int)GA_proclist_replacement[p];
             /* BJP */
             proc = (int)PGRP_LIST[p_handle].inv_map_proc_list[proc];
           }
@@ -1843,6 +1848,7 @@ void ngai_get_common(Integer g_a,
 #ifdef PROFILE_OLD
   ga_profile_stop();
 #endif
+free(GA_proclist_replacement);
 }
 
 /**
@@ -1919,6 +1925,8 @@ void ngai_acc_common(Integer g_a,
   Integer use_blocks;
   Integer n_rstrctd;
   Integer *rank_rstrctd;
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
 
 
   GA_PUSH_NAME("nga_acc_common");
@@ -1944,13 +1952,13 @@ void ngai_acc_common(Integer g_a,
   if (!use_blocks) {
     /* Locate the processors containing some portion of the patch
        specified by lo and hi and return the results in _ga_map,
-       GA_proclist, and np. GA_proclist contains a list of processors
+       GA_proclist_replacement, and np. GA_proclist_replacement contains a list of processors
        containing some portion of the patch, _ga_map contains
        the lower and upper indices of the portion of the patch held
        by a given processor, and np contains the total number of
        processors that contain some portion of the patch.
      */
-    if(!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist, &np ))
+    if(!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist_replacement, &np ))
       ga_RegionError(pnga_ndim(g_a), lo, hi, g_a);
 
 #ifndef NO_GA_STATS
@@ -1978,7 +1986,7 @@ void ngai_acc_common(Integer g_a,
         char *pbuf, *prem;
 
         p = (Integer)ProcListPerm[idx];
-        proc = (int)GA_proclist[p];
+        proc = (int)GA_proclist_replacement[p];
         if (p_handle >= 0) {
           proc = PGRP_LIST[p_handle].inv_map_proc_list[proc];
         }
@@ -1995,7 +2003,7 @@ void ngai_acc_common(Integer g_a,
              return the result in plo and phi. Also get actual processor
              index corresponding to p and store the result in proc. */
           gam_GetRangeFromMap(p, ndim, &plo, &phi);
-          proc = (int)GA_proclist[p];
+          proc = (int)GA_proclist_replacement[p];
 
           /* get pointer prem to location indexed by plo. Also get
              leading physical dimensions in memory in ldrem */
@@ -2016,7 +2024,7 @@ void ngai_acc_common(Integer g_a,
           gam_setstride(ndim, size, ld, ldrem, stride_rem, stride_loc);
 
           if (p_handle >= 0) {
-            proc = (int)GA_proclist[p];
+            proc = (int)GA_proclist_replacement[p];
             /* BJP */
             proc = (int)PGRP_LIST[p_handle].inv_map_proc_list[proc];
           }
@@ -2375,6 +2383,7 @@ void ngai_acc_common(Integer g_a,
   ga_profile_stop();
 #endif
   GA_Internal_Threadsafe_Unlock();
+  free(GA_proclist_replacement);
 }
 
 /**
@@ -5007,6 +5016,8 @@ void pnga_strided_put(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
   nproc = pnga_nnodes();
   p_handle = GA[handle].p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* check values of skips to make sure they are legitimate */
   for (i = 0; i<ndim; i++) {
     if (skip[i]<1) {
@@ -5019,12 +5030,12 @@ void pnga_strided_put(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
   if (!use_blocks) {
     /* Locate the processors containing some portion of the patch
        specified by lo and hi and return the results in _ga_map,
-       GA_proclist, and np. GA_proclist contains the list of processors
+       GA_proclist_replacement, and np. GA_proclist_replacement contains the list of processors
        containing some portion of the patch, _ga_map contains the
        lower and upper indices of the portion of the total patch held by
        a given processor, and np contains the total number of processors
        that contain some portion of the patch. */
-    if (!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist, &np))
+    if (!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist_replacement, &np))
       ga_RegionError(pnga_ndim(g_a), lo, hi, g_a);
 
     /* Loop over all processors containing a portion of patch */
@@ -5040,7 +5051,7 @@ void pnga_strided_put(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
          the result in plo and phi. Also, get actual processor index
          corresponding to p and store the result in proc. */
       gam_GetRangeFromMap(p, ndim, &plo, &phi);
-      proc = (int)GA_proclist[(int)p];
+      proc = (int)GA_proclist_replacement[(int)p];
 
       /* Correct ranges to account for skips in original patch. If no
          data is left in patch jump to next processor in loop. */
@@ -5338,6 +5349,7 @@ void pnga_strided_put(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
     }
   }
   GA_POP_NAME;
+  free(GA_proclist_replacement);
 }
 
 /**
@@ -5367,6 +5379,8 @@ void pnga_strided_get(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
   nproc = pnga_nnodes();
   p_handle = GA[handle].p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* check values of skips to make sure they are legitimate */
   for (i = 0; i<ndim; i++) {
     if (skip[i]<1) {
@@ -5379,12 +5393,12 @@ void pnga_strided_get(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
   if (!use_blocks) {
     /* Locate the processors containing some portion of the patch
        specified by lo and hi and return the results in _ga_map,
-       GA_proclist, and np. GA_proclist contains the list of processors
+       GA_proclist_replacement, and np. GA_proclist_replacement contains the list of processors
        containing some portion of the patch, _ga_map contains the
        lower and upper indices of the portion of the total patch held by
        a given processor, and np contains the total number of processors
        that contain some portion of the patch. */
-    if (!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist, &np))
+    if (!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist_replacement, &np))
       ga_RegionError(pnga_ndim(g_a), lo, hi, g_a);
 
     /* Loop over all processors containing a portion of patch */
@@ -5400,7 +5414,7 @@ void pnga_strided_get(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
          the result in plo and phi. Also, get actual processor index
          corresponding to p and store the result in proc. */
       gam_GetRangeFromMap(p, ndim, &plo, &phi);
-      proc = (int)GA_proclist[(int)p];
+      proc = (int)GA_proclist_replacement[(int)p];
 
       /* Correct ranges to account for skips in original patch. If no
          data is left in patch jump to next processor in loop. */
@@ -5719,6 +5733,7 @@ void pnga_strided_get(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
     }
   }
   GA_POP_NAME;
+  free(GA_proclist_replacement);
 }
 
 /**
@@ -5751,6 +5766,8 @@ void pnga_strided_acc(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
   use_blocks = GA[handle].block_flag;
   nproc = pnga_nnodes();
   p_handle = GA[handle].p_handle;
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
 
   if (type == C_DBL) optype = ARMCI_ACC_DBL;
   else if (type == C_FLOAT) optype = ARMCI_ACC_FLT;
@@ -5772,12 +5789,12 @@ void pnga_strided_acc(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
   if (!use_blocks) {
     /* Locate the processors containing some portion of the patch
        specified by lo and hi and return the results in _ga_map,
-       GA_proclist, and np. GA_proclist contains the list of processors
+       GA_proclist_replacement, and np. GA_proclist_replacement contains the list of processors
        containing some portion of the patch, _ga_map contains the
        lower and upper indices of the portion of the total patch held by
        a given processor, and np contains the total number of processors
        that contain some portion of the patch. */
-    if (!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist, &np))
+    if (!pnga_locate_region(g_a, lo, hi, _ga_map, GA_proclist_replacement, &np))
       ga_RegionError(pnga_ndim(g_a), lo, hi, g_a);
 
     /* Loop over all processors containing a portion of patch */
@@ -5793,7 +5810,7 @@ void pnga_strided_acc(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
          the result in plo and phi. Also, get actual processor index
          corresponding to p and store the result in proc. */
       gam_GetRangeFromMap(p, ndim, &plo, &phi);
-      proc = (int)GA_proclist[(int)p];
+      proc = (int)GA_proclist_replacement[(int)p];
 
       /* Correct ranges to account for skips in original patch. If no
          data is left in patch jump to next processor in loop. */
@@ -6094,4 +6111,5 @@ void pnga_strided_acc(Integer g_a, Integer *lo, Integer *hi, Integer *skip,
     }
   }
   GA_POP_NAME;
+  free(GA_proclist_replacement);
 }

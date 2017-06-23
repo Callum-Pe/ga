@@ -8,7 +8,6 @@ extern Integer *_ga_map;
 extern Integer GAme, GAnproc;
 extern Integer *GA_proclist;
 extern int GA_Default_Proc_Group;
-extern int* GA_Proc_list;
 extern int* GA_inv_Proc_list;
 extern int** GA_Update_Flags;
 extern int* GA_Update_Signal;

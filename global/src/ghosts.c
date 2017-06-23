@@ -426,6 +426,8 @@ void pnga_update1_ghosts(Integer g_a)
   logical hasData = TRUE;
   Integer me = pnga_nodeid();
   Integer p_handle;
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
 
   /* This routine makes use of the shift algorithm to update data in the
    * ghost cells bounding the local block of visible data. The shift
@@ -581,7 +583,7 @@ void pnga_update1_ghosts(Integer g_a)
         }
         /* locate processor with this data */
         if (!pnga_locate_region(g_a, slo_rem, shi_rem, _ga_map,
-            GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+            GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
             slo_rem, shi_rem, g_a);
 
         for (ipx = 0; ipx < np; ipx++) {
@@ -591,7 +593,7 @@ void pnga_update1_ghosts(Integer g_a)
              coordinates take into account the presence of ghost
              cells). Start by finding out what data is actually held by
              remote processor. */
-          proc_rem = GA_proclist[ipx];
+          proc_rem = GA_proclist_replacement[ipx];
           pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
           for (i = 0; i < ndim; i++) {
             if (increment[i] == 0) {
@@ -704,7 +706,7 @@ void pnga_update1_ghosts(Integer g_a)
         }
         /* locate processor with this data */
         if (!pnga_locate_region(g_a, slo_rem, shi_rem, _ga_map,
-            GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+            GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
             slo_rem, shi_rem, g_a);
 
         for (ipx = 0; ipx < np; ipx++) {
@@ -714,7 +716,7 @@ void pnga_update1_ghosts(Integer g_a)
              coordinates take into account the presence of ghost
              cells). Start by finding out what data is actually held by
              remote processor. */
-          proc_rem = GA_proclist[ipx];
+          proc_rem = GA_proclist_replacement[ipx];
           pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
           for (i = 0; i < ndim; i++) {
             if (increment[i] == 0) {
@@ -784,6 +786,7 @@ void pnga_update1_ghosts(Integer g_a)
   }
 
   GA_POP_NAME;
+  free(GA_proclist_replacement);
 }
 
 /*\ UTILITY FUNCTION TO MAKE SURE GHOST CELLS WIDTHS ARE
@@ -837,6 +840,8 @@ logical pnga_update2_ghosts(Integer g_a)
   Integer me = pnga_nodeid();
   Integer p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* if global array has no ghost cells, just return */
   if (!pnga_has_ghosts(g_a)) {
     return TRUE;
@@ -924,7 +929,7 @@ logical pnga_update2_ghosts(Integer g_a)
     }
     /* Locate remote processor to which data must be sent */
     if (!pnga_locate_region(g_a, tlo_rem, thi_rem, _ga_map,
-       GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+       GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
        tlo_rem, thi_rem, g_a);
     if (np > 1) {
       fprintf(stderr,"More than one remote processor found\n");
@@ -932,7 +937,7 @@ logical pnga_update2_ghosts(Integer g_a)
     /* Remote processor has been identified, now get ready to send
        data to it. Start by getting distribution on remote
        processor.*/
-    proc_rem = GA_proclist[0];
+    proc_rem = GA_proclist_replacement[0];
     pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
     for (idx = 0; idx < ndim; idx++) {
       if (mask[idx] == 0) {
@@ -973,7 +978,7 @@ logical pnga_update2_ghosts(Integer g_a)
     ARMCI_NbPutS(ptr_loc, stride_loc, ptr_rem, stride_rem, count,
           (int)(ndim - 1), (int)proc_rem, NULL); 
   }
-
+  free(GA_proclist_replacement);
   ARMCI_WaitAll();
   GA_POP_NAME;
   return TRUE;
@@ -1071,6 +1076,8 @@ logical pnga_update3_ghosts(Integer g_a)
   Integer me = pnga_nodeid();
   Integer p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* This routine makes use of the shift algorithm to update data in the
    * ghost cells bounding the local block of visible data. The shift
    * algorithm starts by updating the blocks of data along the first
@@ -1167,7 +1174,7 @@ logical pnga_update3_ghosts(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rem, shi_rem, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rem, shi_rem, g_a);
 
       /* Get actual coordinates of desired location of remote
@@ -1176,7 +1183,7 @@ logical pnga_update3_ghosts(Integer g_a)
          coordinates take into account the presence of ghost
          cells). Start by finding out what data is actually held by
          remote processor. */
-      proc_rem = GA_proclist[0];
+      proc_rem = GA_proclist_replacement[0];
       pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
       for (i = 0; i < ndim; i++) {
         if (increment[i] == 0) {
@@ -1226,7 +1233,7 @@ logical pnga_update3_ghosts(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rem, shi_rem, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rem, shi_rem, g_a);
 
       /* Get actual coordinates of desired chunk of remote
@@ -1235,7 +1242,7 @@ logical pnga_update3_ghosts(Integer g_a)
          coordinates take into account the presence of ghost
          cells). Start by finding out what data is actually held by
          remote processor. */
-      proc_rem = GA_proclist[0];
+      proc_rem = GA_proclist_replacement[0];
       pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
       for (i = 0; i < ndim; i++) {
         if (increment[i] == 0) {
@@ -1285,6 +1292,7 @@ logical pnga_update3_ghosts(Integer g_a)
     increment[idx] = 2*nwidth;
   }
 
+  free(GA_proclist_replacement);
   GA_POP_NAME;
   return TRUE;
 }
@@ -1316,6 +1324,8 @@ logical pnga_set_update4_info(Integer g_a)
   Integer me = pnga_nodeid();
   Integer p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* This routine sets the arrays that are used to transfer data using
    * the update4. To perform the update, this routine makes use of several
    * copies of indices marking the upper and lower limits of data. Indices
@@ -1431,9 +1441,9 @@ logical pnga_set_update4_info(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      *proc_rem_snd = GA_proclist[0];
+      *proc_rem_snd = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         *proc_rem_snd = PGRP_LIST[p_handle].inv_map_proc_list[*proc_rem_snd];
       }
@@ -1466,9 +1476,9 @@ logical pnga_set_update4_info(Integer g_a)
       }
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      *proc_rem_rcv = GA_proclist[0];
+      *proc_rem_rcv = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         *proc_rem_rcv = PGRP_LIST[p_handle].inv_map_proc_list[*proc_rem_rcv];
       }
@@ -1553,9 +1563,9 @@ logical pnga_set_update4_info(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      *proc_rem_snd = GA_proclist[0];
+      *proc_rem_snd = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         *proc_rem_snd = PGRP_LIST[p_handle].inv_map_proc_list[*proc_rem_snd];
       }
@@ -1588,9 +1598,9 @@ logical pnga_set_update4_info(Integer g_a)
       }
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      *proc_rem_rcv = GA_proclist[0];
+      *proc_rem_rcv = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         *proc_rem_rcv = PGRP_LIST[p_handle].inv_map_proc_list[*proc_rem_rcv];
       }
@@ -1666,6 +1676,7 @@ logical pnga_set_update4_info(Integer g_a)
       printf("p[%d]a final pointer: %d\n",GAme,(Integer)(Integer*)current);
       fflush(stdout);
 #endif
+  free(GA_proclist_replacement);
   return TRUE;
 }
 
@@ -1951,6 +1962,8 @@ logical pnga_update44_ghosts(Integer g_a)
   Integer me = pnga_nodeid();
   Integer p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* This routine makes use of the shift algorithm to update data in the
    * ghost cells bounding the local block of visible data. The shift
    * algorithm starts by updating the blocks of data along the first
@@ -2062,9 +2075,9 @@ logical pnga_update44_ghosts(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      proc_rem_snd = GA_proclist[0];
+      proc_rem_snd = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         proc_rem_snd = PGRP_LIST[p_handle].inv_map_proc_list[proc_rem_snd];
       }
@@ -2097,9 +2110,9 @@ logical pnga_update44_ghosts(Integer g_a)
       }
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      proc_rem_rcv = GA_proclist[0];
+      proc_rem_rcv = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         proc_rem_rcv = PGRP_LIST[p_handle].inv_map_proc_list[proc_rem_rcv];
       }
@@ -2232,9 +2245,9 @@ logical pnga_update44_ghosts(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      proc_rem_snd = GA_proclist[0];
+      proc_rem_snd = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         proc_rem_snd = PGRP_LIST[p_handle].inv_map_proc_list[proc_rem_snd];
       }
@@ -2267,9 +2280,9 @@ logical pnga_update44_ghosts(Integer g_a)
       }
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      proc_rem_rcv = GA_proclist[0];
+      proc_rem_rcv = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         proc_rem_rcv = PGRP_LIST[p_handle].inv_map_proc_list[proc_rem_rcv];
       }
@@ -2402,7 +2415,7 @@ logical pnga_update44_ghosts(Integer g_a)
     if (GA[handle].corner_flag)
       increment[idx] = 2*width[idx];
   }
-
+  free(GA_proclist_replacement);
   ga_free(rcv_ptr_orig);
   ga_free(snd_ptr_orig);
   GA_POP_NAME;
@@ -2477,6 +2490,8 @@ logical pnga_update55_ghosts(Integer g_a)
   Integer me = pnga_nodeid();
   Integer p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* This routine makes use of the shift algorithm to update data in the
    * ghost cells bounding the local block of visible data. The shift
    * algorithm starts by updating the blocks of data along the first
@@ -2578,7 +2593,7 @@ logical pnga_update55_ghosts(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rem, shi_rem, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rem, shi_rem, g_a);
 
       /* Get actual coordinates of desired location of remote
@@ -2587,7 +2602,7 @@ logical pnga_update55_ghosts(Integer g_a)
          coordinates take into account the presence of ghost
          cells). Start by finding out what data is actually held by
          remote processor. */
-      proc_rem = GA_proclist[0];
+      proc_rem = GA_proclist_replacement[0];
       pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
       for (i = 0; i < ndim; i++) {
         if (increment[i] == 0) {
@@ -2646,7 +2661,7 @@ logical pnga_update55_ghosts(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rem, shi_rem, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rem, shi_rem, g_a);
 
       /* Get actual coordinates of desired chunk of remote
@@ -2655,7 +2670,7 @@ logical pnga_update55_ghosts(Integer g_a)
          coordinates take into account the presence of ghost
          cells). Start by finding out what data is actually held by
          remote processor. */
-      proc_rem = GA_proclist[0];
+      proc_rem = GA_proclist_replacement[0];
       pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
       for (i = 0; i < ndim; i++) {
         if (increment[i] == 0) {
@@ -2723,6 +2738,7 @@ logical pnga_update55_ghosts(Integer g_a)
     GA_Update_Flags[GAme][idx] = 0;
   }
 
+  free(GA_proclist_replacement);
   GA_POP_NAME;
   return TRUE;
 }
@@ -2751,6 +2767,8 @@ void pnga_update_ghosts_nb(Integer g_a, Integer *nbhandle)
   Integer me = pnga_nodeid();
   Integer p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* if global array has no ghost cells, just return */
   if (!pnga_has_ghosts(g_a)) {
     return;
@@ -2834,7 +2852,7 @@ void pnga_update_ghosts_nb(Integer g_a, Integer *nbhandle)
     }
     /* Locate remote processor from which data must be retrieved */
     if (!pnga_locate_region(g_a, tlo_rem, thi_rem, _ga_map,
-       GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+       GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
        tlo_rem, thi_rem, g_a);
     if (np > 1) {
       fprintf(stderr,"More than one remote processor found\n");
@@ -2842,7 +2860,7 @@ void pnga_update_ghosts_nb(Integer g_a, Integer *nbhandle)
     /* Remote processor has been identified, now get ready to get
        data from it. Start by getting distribution on remote
        processor.*/
-    proc_rem = GA_proclist[0];
+    proc_rem = GA_proclist_replacement[0];
     pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
     for (idx = 0; idx < ndim; idx++) {
       if (mask[idx] == 0) {
@@ -2883,6 +2901,7 @@ void pnga_update_ghosts_nb(Integer g_a, Integer *nbhandle)
         (armci_hdl_t*)get_armci_nbhandle(nbhandle));
   }
 
+  free(GA_proclist_replacement);
   GA_POP_NAME;
   return;
 }
@@ -2911,6 +2930,8 @@ logical pnga_update_ghost_dir(Integer g_a,    /* GA handle */
   char *ptr_loc, *ptr_rem;
   Integer me = pnga_nodeid();
   Integer p_handle;
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
 
   int local_sync_begin,local_sync_end;
 
@@ -3016,7 +3037,7 @@ logical pnga_update_ghost_dir(Integer g_a,    /* GA handle */
     }
     /* Locate remote processor to which data must be sent */
     if (!pnga_locate_region(g_a, tlo_rem, thi_rem, _ga_map,
-       GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+       GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
        tlo_rem, thi_rem, g_a);
     if (np > 1) {
       fprintf(stderr,"More than one remote processor found\n");
@@ -3024,7 +3045,7 @@ logical pnga_update_ghost_dir(Integer g_a,    /* GA handle */
     /* Remote processor has been identified, now get ready to get
        data from it. Start by getting distribution on remote
        processor.*/
-    proc_rem = GA_proclist[0];
+    proc_rem = GA_proclist_replacement[0];
     pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
     for (idx = 0; idx < ndim; idx++) {
       if (mask[idx] == 0) {
@@ -3067,6 +3088,7 @@ logical pnga_update_ghost_dir(Integer g_a,    /* GA handle */
           (int)(ndim - 1), (int)proc_rem);
   }
 
+  free(GA_proclist_replacement);
   GA_POP_NAME;
   if(local_sync_end)pnga_pgroup_sync(p_handle);
   return TRUE;
@@ -3277,6 +3299,8 @@ logical pnga_set_update5_info(Integer g_a)
   Integer me = pnga_nodeid();
   Integer p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* This routine sets up the arrays that are used to transfer data
    * using the update5 algorithm. The arrays begining with the character
    * "p" represent relative indices marking the location of the data set
@@ -3356,10 +3380,10 @@ logical pnga_set_update5_info(Integer g_a)
         get_remote_block_neg(idx, ndim, lo_loc, hi_loc, slo_rem, shi_rem,
                              dims, width);
         if (!pnga_locate_region(g_a, slo_rem, shi_rem, _ga_map,
-            GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+            GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
             slo_rem, shi_rem, g_a);
 
-        *proc_rem = (Integer)GA_proclist[0];
+        *proc_rem = (Integer)GA_proclist_replacement[0];
         if (p_handle >= 0) {
           *proc_rem = PGRP_LIST[p_handle].inv_map_proc_list[*proc_rem];
         }
@@ -3422,10 +3446,10 @@ logical pnga_set_update5_info(Integer g_a)
                              dims, width);
 
         if (!pnga_locate_region(g_a, slo_rem, shi_rem, _ga_map,
-            GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+            GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
             slo_rem, shi_rem, g_a);
 
-        *proc_rem = (Integer)GA_proclist[0];
+        *proc_rem = (Integer)GA_proclist_replacement[0];
         if (p_handle >= 0) {
           *proc_rem = PGRP_LIST[p_handle].inv_map_proc_list[*proc_rem];
         }
@@ -3479,6 +3503,7 @@ logical pnga_set_update5_info(Integer g_a)
           increment[idx] = 2*nwidth;
       }
     }
+    free(GA_proclist_replacement);
     return TRUE;
 }
 
@@ -3554,6 +3579,8 @@ logical pnga_update6_ghosts(Integer g_a)
   Integer me = pnga_nodeid();
   Integer p_handle, wproc;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* This routine makes use of the shift algorithm to update data in the
    * ghost cells bounding the local block of visible data. The shift
    * algorithm starts by updating the blocks of data along the first
@@ -3680,15 +3707,15 @@ logical pnga_update6_ghosts(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
       /* find out if this processor is on the same node */
-      wproc = GA_proclist[0];
+      wproc = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         wproc = PGRP_LIST[p_handle].inv_map_proc_list[wproc];
       }
       rprocflag = ARMCI_Same_node(wproc);
-      proc_rem_snd = GA_proclist[0];
+      proc_rem_snd = GA_proclist_replacement[0];
 
       /* Find processor from which data will be received */
       for (i = 0; i < ndim; i++) {
@@ -3718,14 +3745,14 @@ logical pnga_update6_ghosts(Integer g_a)
       }
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      wproc = GA_proclist[0];
+      wproc = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         wproc = PGRP_LIST[p_handle].inv_map_proc_list[wproc];
       }
       sprocflag = ARMCI_Same_node(wproc);
-      proc_rem_rcv = GA_proclist[0];
+      proc_rem_rcv = GA_proclist_replacement[0];
       pnga_distribution(g_a, proc_rem_rcv, tlo_rem, thi_rem);
 
       /* Get actual coordinates of chunk of data that will be sent to
@@ -3870,14 +3897,14 @@ logical pnga_update6_ghosts(Integer g_a)
                            dims, width);
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      wproc = GA_proclist[0];
+      wproc = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         wproc = PGRP_LIST[p_handle].inv_map_proc_list[wproc];
       }
       rprocflag = ARMCI_Same_node(wproc);
-      proc_rem_snd = GA_proclist[0];
+      proc_rem_snd = GA_proclist_replacement[0];
 
       /* Find processor from which data will be recieved */
       for (i = 0; i < ndim; i++) {
@@ -3907,14 +3934,14 @@ logical pnga_update6_ghosts(Integer g_a)
       }
       /* locate processor with this data */
       if (!pnga_locate_region(g_a, slo_rcv, shi_rcv, _ga_map,
-          GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+          GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
           slo_rcv, shi_rcv, g_a);
-      wproc = GA_proclist[0];
+      wproc = GA_proclist_replacement[0];
       if (p_handle >= 0) {
         wproc = PGRP_LIST[p_handle].inv_map_proc_list[wproc];
       }
       sprocflag = ARMCI_Same_node(wproc);
-      proc_rem_rcv = GA_proclist[0];
+      proc_rem_rcv = GA_proclist_replacement[0];
       pnga_distribution(g_a, proc_rem_rcv, tlo_rem, thi_rem);
 
       /* Get actual coordinates of chunk of data that will be sent to
@@ -4068,6 +4095,7 @@ logical pnga_update6_ghosts(Integer g_a)
     GA_Update_Flags[GAme][idx] = 0;
   }
 
+  free(GA_proclist_replacement);
   GA_POP_NAME;
   return TRUE;
 }
@@ -4094,6 +4122,8 @@ logical pnga_update7_ghosts(Integer g_a)
   Integer me = pnga_nodeid();
   Integer p_handle;
 
+  Integer *GA_proclist_replacement = (Integer*)malloc((size_t)GAnproc*sizeof(Integer)); 
+  if(!GA_proclist_replacement) pnga_error("ga_init:malloc failed (proclist)",0);
   /* if global array has no ghost cells, just return */
   if (!pnga_has_ghosts(g_a)) {
     return TRUE;
@@ -4175,7 +4205,7 @@ logical pnga_update7_ghosts(Integer g_a)
     }
     /* Locate remote processor to which data must be sent */
     if (!pnga_locate_region(g_a, tlo_rem, thi_rem, _ga_map,
-       GA_proclist, &np)) ga_RegionError(pnga_ndim(g_a),
+       GA_proclist_replacement, &np)) ga_RegionError(pnga_ndim(g_a),
        tlo_rem, thi_rem, g_a);
     if (np > 1) {
       fprintf(stderr,"More than one remote processor found\n");
@@ -4183,7 +4213,7 @@ logical pnga_update7_ghosts(Integer g_a)
     /* Remote processor has been identified, now get ready to send
        data to it. Start by getting distribution on remote
        processor.*/
-    proc_rem = GA_proclist[0];
+    proc_rem = GA_proclist_replacement[0];
     pnga_distribution(g_a, proc_rem, tlo_rem, thi_rem);
     for (idx = 0; idx < ndim; idx++) {
       if (mask[idx] == 0) {
@@ -4225,6 +4255,7 @@ logical pnga_update7_ghosts(Integer g_a)
           (int)(ndim - 1), (int)proc_rem, NULL);
   }
 
+  free(GA_proclist_replacement);
   ARMCI_WaitAll();
   GA_POP_NAME;
   return TRUE;
